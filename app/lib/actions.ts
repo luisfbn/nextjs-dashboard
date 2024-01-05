@@ -13,18 +13,21 @@ export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
 ) {
+  let responseRedirectUrl = null;
   try {
-    await signIn('credentials', formData);
+    console.log('formData', formData);
+    responseRedirectUrl = await signIn('credentials', {
+      ...Object.fromEntries(formData),
+      redirect: false,
+    });
   } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return 'Invalid credentials.';
-        default:
-          return 'Something went wrong.';
-      }
+    console.log('error', error);
+    if ((error as Error).message.includes('CredentialsSignin')) {
+      return 'CredentialSignin';
     }
     throw error;
+  } finally {
+    if (responseRedirectUrl) redirect(responseRedirectUrl);
   }
 }
 
